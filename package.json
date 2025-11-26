@@ -11,16 +11,15 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.57.0",
-    "@emotion/react": "^11.14.0",
-    "@emotion/styled": "^11.14.1",
-    "@mui/icons-material": "^7.3.5",
-    "@mui/material": "^7.3.5",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@mui/icons-material": "^5.15.0",
     "@mui/material": "^5.15.0",
+    "idb": "^8.0.3",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^7.9.6",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.9.0",

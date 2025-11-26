@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard";
 import LandingPage from "./pages/LandingPage";
 
 import './App.css'
+import { BrowserRouter } from "react-router-dom";
 
 const theme = createTheme({
   palette: {
@@ -56,16 +57,17 @@ const theme = createTheme({
 function App() {
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
-      
-      <SignedOut>
-        <LandingPage />
-      </SignedOut>
+      <BrowserRouter>
+        <CssBaseline />
 
-      <SignedIn>
-        <Dashboard />
-      </SignedIn>
-      
+        <SignedOut>
+          <LandingPage />
+        </SignedOut>
+
+        <SignedIn>
+          <Dashboard />
+        </SignedIn>
+      </BrowserRouter>
     </ThemeProvider>
   );
 }
