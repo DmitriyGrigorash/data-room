@@ -1,35 +1,73 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { SignedIn, SignedOut } from "@clerk/clerk-react";
+
+import { createTheme, ThemeProvider } from '@mui/material/styles';
+import CssBaseline from '@mui/material/CssBaseline';
+
+// Pages
+import Dashboard from "./pages/Dashboard";
+import LandingPage from "./pages/LandingPage";
+
 import './App.css'
 
-function App() {
-  const [count, setCount] = useState(0)
+const theme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: {
+      main: '#6366F1',
+    },
+    background: {
+      default: '#0B1120',
+      paper: '#1E293B',
+    },
+    text: {
+      primary: '#F8FAFC',
+      secondary: '#94A3B8',
+    },
+  },
+  typography: {
+    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
+    button: {
+      textTransform: 'none',
+      fontWeight: 600,
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: '10px',
+          padding: '10px 24px',
+          fontSize: '1rem',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: '16px',
+          border: '1px solid rgba(255, 255, 255, 0.08)',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3)',
+        },
+      },
+    },
+  },
+});
 
+function App() {
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <ThemeProvider theme={theme}>
+      <CssBaseline />
+      
+      <SignedOut>
+        <LandingPage />
+      </SignedOut>
+
+      <SignedIn>
+        <Dashboard />
+      </SignedIn>
+      
+    </ThemeProvider>
+  );
 }
 
-export default App
+export default App;
