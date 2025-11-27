@@ -123,6 +123,41 @@ class MockBackendService {
         // 3. Удаляем сам узел из базы
         await db.delete(STORE_NAME, id);
     }
+
+    // --- НОВЫЙ МЕТОД: ПЕРЕИМЕНОВАНИЕ ---
+    async renameNode(id: string, newName: string): Promise<FileSystemNode> {
+        await this.delay(200);
+        const db = await this.dbPromise;
+
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        const store = tx.store;
+
+        // 1. Получаем текущий узел
+        const node = await store.get(id);
+        if (!node) throw new Error('Node not found');
+
+        if (node.name === newName) return node; // Имя не изменилось
+
+        // 2. Проверяем дубликаты в той же папке
+        const index = store.index('by-parent');
+        const siblings = await index.getAll(node.parentId || 'root');
+
+        // Ищем совпадение имени, исключая сам текущий файл
+        const exists = siblings.some(s => s.name === newName && s.id !== id);
+        if (exists) {
+            throw new Error(`Item with name "${newName}" already exists in this folder.`);
+        }
+
+        // 3. Обновляем поля
+        node.name = newName;
+        node.updatedAt = Date.now();
+
+        // 4. Сохраняем (put обновляет существующую запись)
+        await store.put(node);
+        await tx.done;
+
+        return node;
+    }
 }
 
 export const backend = new MockBackendService();

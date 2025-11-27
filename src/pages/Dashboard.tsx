@@ -10,7 +10,7 @@ const Dashboard = () => {
                 <Route path="/" element={<FileManagerLayout />} />
                 <Route path="/folder/:folderId" element={<FileManagerLayout />} />
 
-                {/* Обработка 404 */}
+                {/* 404 */}
                 <Route path="*" element={<div>Page not found</div>} />
             </Routes>
         </FileSystemProvider>

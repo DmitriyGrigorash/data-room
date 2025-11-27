@@ -17,4 +17,5 @@ export type Action =
   | { type: 'CREATE_NODE_SUCCESS'; payload: FileSystemNode }
   | { type: 'UPLOAD_PROGRESS'; payload: { id: string; progress: number } }
   | { type: 'UPLOAD_COMPLETE'; payload: { id: string; node: FileSystemNode } }
-  | { type: 'DELETE_NODE'; payload: string }; // ID удаляемого узла
+  | { type: 'DELETE_NODE'; payload: string }
+  | { type: 'RENAME_NODE_SUCCESS'; payload: { id: string; name: string; updatedAt: number } };

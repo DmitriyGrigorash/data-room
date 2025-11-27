@@ -53,6 +53,17 @@ function reducer(state: FileSystemState, action: Action): FileSystemState {
                 items: state.items.filter(item => item.id !== action.payload)
             };
 
+        // Обновляем имя в списке items без перезагрузки всей папки
+        case 'RENAME_NODE_SUCCESS':
+            return {
+                ...state,
+                items: state.items.map(item =>
+                    item.id === action.payload.id
+                        ? { ...item, name: action.payload.name, updatedAt: action.payload.updatedAt }
+                        : item
+                )
+            };
+
         default:
             return state;
     }
@@ -66,6 +77,7 @@ interface FileSystemContextType {
     createFolder: (name: string) => Promise<void>;
     uploadFile: (file: File) => Promise<void>;
     deleteNode: (nodeId: string) => Promise<void>;
+    renameNode: (nodeId: string, newName: string) => Promise<void>;
 }
 
 const FileSystemContext = createContext<FileSystemContextType | undefined>(undefined);
@@ -150,7 +162,7 @@ export const FileSystemProvider = ({ children }: { children: ReactNode }) => {
         }
     }, [state.currentFolderId]);
 
-    // 4. Удаление (НОВОЕ)
+    // 4. Удаление
     const deleteNode = useCallback(async (nodeId: string) => {
         try {
             // Сначала удаляем из БД
@@ -160,6 +172,24 @@ export const FileSystemProvider = ({ children }: { children: ReactNode }) => {
         } catch (err) {
             console.error("Ошибка при удалении:", err);
             alert("Не удалось удалить элемент.");
+        }
+    }, []);
+
+    // 5. Переименование
+    const renameNode = useCallback(async (nodeId: string, newName: string) => {
+        try {
+            const updatedNode = await backend.renameNode(nodeId, newName);
+            dispatch({
+                type: 'RENAME_NODE_SUCCESS',
+                payload: {
+                    id: nodeId,
+                    name: updatedNode.name,
+                    updatedAt: updatedNode.updatedAt
+                }
+            });
+        } catch (err) {
+            console.error("Ошибка при переименовании:", err);
+            alert(err instanceof Error ? err.message : "Не удалось переименовать.");
         }
     }, []);
 
@@ -177,7 +207,7 @@ export const FileSystemProvider = ({ children }: { children: ReactNode }) => {
     }, [loadFolder, state.currentFolderId, state.items.length]);
 
     return (
-        <FileSystemContext.Provider value={{ state, loadFolder, createFolder, uploadFile, deleteNode }}>
+        <FileSystemContext.Provider value={{ state, loadFolder, createFolder, uploadFile, deleteNode, renameNode }}>
             {children}
         </FileSystemContext.Provider>
     );

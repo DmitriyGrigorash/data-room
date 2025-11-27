@@ -1,0 +1,6 @@
+.ActionBar {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    max-width: 300px;
+}

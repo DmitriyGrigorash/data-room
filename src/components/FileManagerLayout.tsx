@@ -12,68 +12,71 @@ import SecurityIcon from '@mui/icons-material/Security';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 
 import { useFileSystem } from '../context/FileSystemContext';
-import Toolbar from './Toolbar';
 import BreadcrumbsNav from './BreadcrumbsNav';
-import FileExplorer from './FileExplorer';
+import FileExplorer from './FilesExplorer/FileExplorer';
+import AppBar from '@mui/material/AppBar';
+import ActionBar from './ActionBar/ActionBar';
+import CircularProgress from '@mui/material/CircularProgress';
 
 export const FileManagerLayout = () => {
     const { folderId } = useParams<{ folderId: string }>(); // Получаем ID из URL
     const { loadFolder, state } = useFileSystem();
     const { pathname } = useLocation();
-    console.log(pathname);
 
-
-    // Эффект синхронизации: URL -> State
     useEffect(() => {
-        // Если folderId undefined, значит мы в корне (или используем 'root' как ID корня)
-        const targetId = folderId || 'root';
-        loadFolder(targetId);
-    }, [folderId, loadFolder]);
+        // Если folderId не указан или равен "root", грузим корень (null)
+        const activeFolderId = (folderId === 'root' || !folderId) ? null : folderId;
 
-    if (state.isLoading) {
-        return <div>Loading filesystem...</div>;
-    }
+        loadFolder(activeFolderId);
+
+    }, [folderId, loadFolder]);
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh', bgcolor: 'background.default' }}>
-            <Paper
-                square
-                elevation={0}
-                sx={{
-                    p: 2,
-                    borderBottom: '1px solid rgba(255,255,255,0.1)',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center'
-                }}
-            >
-                <Stack direction="row" spacing={2} alignItems="center">
-                    <SecurityIcon color="primary" />
-                    <Typography variant="h6" fontWeight="bold">Data Room</Typography>
-                </Stack>
-                <Box display="flex" flexDirection="row">
-                    <BreadcrumbsNav />
+
+            <AppBar
+                position="sticky"
+                style={{
+                    borderRadius: 0,
+                    padding: '10px 15px',
+                }}>
+
+                <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Stack direction="row" spacing={1} alignItems="center">
+                        <SecurityIcon color="primary" />
+                        <Typography variant="h6" fontWeight="bold">Data Room</Typography>
+                    </Stack>
                     <UserButton />
-                </Box>
-            </Paper>
+                </Stack>
+                <BreadcrumbsNav />
+            </AppBar>
 
-            {state.items.length === 0 ?
-                <Stack spacing={3} alignItems="center">
-                    <DashboardIcon sx={{ fontSize: 60, color: 'text.secondary', opacity: 0.5 }} />
-                    <Typography variant="h4">Welcome to the Data Room</Typography>
-                    <Typography color="text.secondary">
-                        You are now authenticated. This is where your files will live.
-                    </Typography>
+            <Box sx={{ flexGrow: 1 }}>
+                {state.isLoading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                        <CircularProgress />
+                    </Box>
+                ) : (
+                    <>
+                        {state.items.length === 0 && pathname === '/' && (
+                            <Stack spacing={3} alignItems="center" sx={{ mt: 4 }}>
+                                <DashboardIcon sx={{ fontSize: 60, color: 'text.secondary', opacity: 0.5 }} />
+                                <Typography variant="h4">Welcome to the Data Room</Typography>
+                                <Typography color="text.secondary">
+                                    You are now authenticated. This is where your files will live.
+                                </Typography>
 
-                    <Paper sx={{ p: 4, width: '100%', mt: 4, border: '1px dashed rgba(255,255,255,0.2)', bgcolor: 'transparent' }}>
-                        <Typography align="center" color="text.secondary">No documents uploaded yet.</Typography>
-                    </Paper>
-                </Stack> :
-                null
-            }
+                                <Paper sx={{ p: 4, width: '80%', maxWidth: '800px', mt: 4, border: '1px dashed rgba(0,0,0,0.1)', bgcolor: 'transparent' }}>
+                                    <Typography align="center" color="text.secondary">No documents uploaded yet.</Typography>
+                                </Paper>
+                            </Stack>
+                        )}
 
-            <Toolbar />
-            <FileExplorer />
+                        <FileExplorer />
+                        <ActionBar />
+                    </>
+                )}
+            </Box>
         </Box>
     );
 };
