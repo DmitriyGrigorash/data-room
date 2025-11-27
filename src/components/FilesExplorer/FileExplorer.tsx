@@ -1,18 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 import {
     List, ListItem, ListItemText, ListItemIcon,
     ListItemButton,
-    IconButton, Menu, MenuItem, Dialog,
-    DialogTitle, DialogContent, TextField,
-    DialogActions, Button, Typography,
-    DialogContentText,
-    Slide,
-    AppBar,
-    Toolbar
+    IconButton, Menu, MenuItem
 } from '@mui/material';
-import { TransitionProps } from '@mui/material/transitions';
 
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import FolderIcon from '@mui/icons-material/Folder';
@@ -20,23 +13,16 @@ import MoreVertIcon from '@mui/icons-material/MoreVert';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
-import CloseIcon from '@mui/icons-material/Close';
 
 import { useFileSystem } from '../../context/FileSystemContext';
 import { FileSystemNode } from '../../services/db';
 
+import { PdfPreviewDialog } from './PdfPreviewDialog';
+import { RenameDialog } from './RenameDialog';
+import { DeleteDialog } from './DeleteDialog';
 
 import './index.css'
 
-// Dialog opening animation (slide from bottom to top)
-const Transition = React.forwardRef(function Transition(
-    props: TransitionProps & {
-        children: React.ReactElement;
-    },
-    ref: React.Ref<unknown>,
-) {
-    return <Slide direction="up" ref={ref} {...props} />;
-});
 
 // Define type for props
 interface FileExplorerProps {
@@ -46,40 +32,26 @@ interface FileExplorerProps {
 const FileExplorer = ({ items }: FileExplorerProps) => {
     const navigate = useNavigate();
     const { deleteNode, renameNode } = useFileSystem();
+
+    // State for the context menu (three dots)
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedNode, setSelectedNode] = useState<FileSystemNode | null>(null);
+
+    // State for controlling dialogs
     const [isRenameOpen, setRenameOpen] = useState(false);
     const [isDeleteOpen, setDeleteOpen] = useState(false);
-    const [newName, setNewName] = useState('');
-
-    // --- State for PDF Preview ---
     const [previewFile, setPreviewFile] = useState<FileSystemNode | null>(null);
-    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-
-    useEffect(() => {
-        // Effect for creating/cleaning up URL
-        if (previewFile && previewFile.content) {
-            // Create a temporary URL for the Blob
-            const url = URL.createObjectURL(previewFile.content);
-            setPreviewUrl(url);
-
-            // Clean up the URL when the component unmounts or previewFile changes to avoid memory leaks
-            return () => URL.revokeObjectURL(url);
-        } else {
-            setPreviewUrl(null);
-        }
-    }, [previewFile]);
 
     const handleMenuOpen = (event: React.MouseEvent<HTMLElement>, node: FileSystemNode) => {
-        event.stopPropagation();
+        event.stopPropagation(); // Prevent triggering ListItemButton's onClick
         setAnchorEl(event.currentTarget);
         setSelectedNode(node);
     };
     const handleMenuClose = () => { setAnchorEl(null); };
 
     const handleDeleteClick = () => {
-        setDeleteOpen(true);
         handleMenuClose();
+        setDeleteOpen(true); // Open delete confirmation dialog
     };
 
     const handleDeleteConfirm = async () => {
@@ -90,13 +62,13 @@ const FileExplorer = ({ items }: FileExplorerProps) => {
     };
 
     const handleRenameStart = () => {
-        if (selectedNode) { setNewName(selectedNode.name); setRenameOpen(true); }
         handleMenuClose();
+        setRenameOpen(true); // Open rename dialog
     };
 
-    const handleRenameSave = async () => {
-        if (selectedNode && newName.trim()) {
-            await renameNode(selectedNode.id, newName.trim());
+    const handleRenameSave = async (newName: string) => {
+        if (selectedNode) {
+            await renameNode(selectedNode.id, newName);
             setRenameOpen(false);
         }
     };
@@ -105,22 +77,14 @@ const FileExplorer = ({ items }: FileExplorerProps) => {
     const handleNavigate = (node: FileSystemNode) => {
         if (node.type === 'folder') {
             navigate(`/folder/${node.id}`);
+        } else if (node.mimeType === 'application/pdf') {
+            // Open PDF preview only for PDF files
+            setPreviewFile(node);
         } else {
-            // Check if the file is a PDF
-            if (node.mimeType === 'application/pdf') {
-                setPreviewFile(node);
-            } else {
-                // For other files, currently just offer download or alert
-                alert("Preview is available only for PDF files currently.");
-            }
+            alert("Preview is available only for PDF files.");
         }
     };
 
-    const handleClosePreview = () => {
-        setPreviewFile(null);
-    };
-
-    // --- Render icon ---
     const getIcon = (node: FileSystemNode) => {
         if (node.type === 'folder') return <FolderIcon color="primary" />;
         if (node.mimeType === 'application/pdf') return <PictureAsPdfIcon color="error" />;
@@ -129,6 +93,7 @@ const FileExplorer = ({ items }: FileExplorerProps) => {
 
     return (
         <section className='FileExplorer'>
+            {/* List of files and folders */}
             <List>
                 {items.map((node) => (
                     <ListItem
@@ -160,6 +125,7 @@ const FileExplorer = ({ items }: FileExplorerProps) => {
                 ))}
             </List>
 
+            {/* Context menu for rename/delete actions */}
             <Menu
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
@@ -175,80 +141,25 @@ const FileExplorer = ({ items }: FileExplorerProps) => {
                 </MenuItem>
             </Menu>
 
-            {/* --- PDF Viewer Dialog --- */}
-            <Dialog
-                fullScreen
-                open={Boolean(previewFile)}
-                onClose={handleClosePreview}
-                TransitionComponent={Transition}
-            >
-                <AppBar sx={{ position: 'relative', bgcolor: '#333' }}>
-                    <Toolbar>
-                        <IconButton
-                            edge="start"
-                            color="inherit"
-                            onClick={handleClosePreview}
-                            aria-label="close"
-                        >
-                            <CloseIcon />
-                        </IconButton>
-                        <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-                            {previewFile?.name}
-                        </Typography>
-                    </Toolbar>
-                </AppBar>
+            {/* Render the extracted dialog components */}
+            <PdfPreviewDialog
+                file={previewFile}
+                onClose={() => setPreviewFile(null)}
+            />
 
-                {/* Iframe displays PDF natively using the browser's capabilities */}
-                {previewUrl && (
-                    <iframe
-                        src={previewUrl}
-                        style={{ width: '100%', height: '100%', border: 'none' }}
-                        title="PDF Preview"
-                    />
-                )}
-            </Dialog>
+            <RenameDialog
+                open={isRenameOpen}
+                initialName={selectedNode?.name || ''}
+                onClose={() => setRenameOpen(false)}
+                onSave={handleRenameSave}
+            />
 
-            <Dialog open={isRenameOpen} onClose={() => setRenameOpen(false)}>
-                <DialogTitle>Rename Item</DialogTitle>
-                <DialogContent>
-                    <TextField
-                        autoFocus
-                        margin="dense"
-                        label="New Name"
-                        type="text"
-                        fullWidth
-                        variant="standard"
-                        value={newName}
-                        onChange={(e) => setNewName(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') handleRenameSave(); }}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setRenameOpen(false)}>Cancel</Button>
-                    <Button onClick={handleRenameSave}>Save</Button>
-                </DialogActions>
-            </Dialog>
-
-            <Dialog
+            <DeleteDialog
                 open={isDeleteOpen}
+                node={selectedNode}
                 onClose={() => setDeleteOpen(false)}
-            >
-                <DialogTitle>Delete Item?</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Are you sure you want to delete "{selectedNode?.name}"?
-                        {selectedNode?.type === 'folder' && " This will delete all files inside."}
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={() => setDeleteOpen(false)} color="primary">
-                        Cancel
-                    </Button>
-                    <Button onClick={handleDeleteConfirm} color="error" variant="contained" autoFocus>
-                        Delete
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                onConfirm={handleDeleteConfirm}
+            />
         </section>
     );
 };
