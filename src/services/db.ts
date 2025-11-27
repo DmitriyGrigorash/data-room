@@ -58,7 +58,7 @@ class MockBackendService {
         // Transaction check: name must be unique within the folder
         const tx = db.transaction(STORE_NAME, 'readwrite');
         const index = tx.store.index('by-parent');
-        const siblings = await index.getAll(node.parentId || 'root'); // Get all siblings to check for name conflicts
+        const siblings = await index.getAll(node.parentId || 'root');
 
         if (siblings.some(s => s.name === node.name)) {
             throw new Error(`Item with name "${node.name}" already exists.`);
@@ -76,7 +76,6 @@ class MockBackendService {
     }
 
     // Recursively build the path (Breadcrumbs)
-    // This is crucial for understanding "where I am" in deep nesting
     async resolvePath(nodeId: string): Promise<FileSystemNode[]> {
         const db = await this.dbPromise;
         const path: FileSystemNode[] = [];
@@ -92,7 +91,6 @@ class MockBackendService {
         return path;
     }
 
-    // Delete a node (file or folder recursively)
     async deleteNode(id: string): Promise<void> {
         const db = await this.dbPromise;
 
@@ -108,7 +106,6 @@ class MockBackendService {
             const children = await db.getAllFromIndex(STORE_NAME, 'by-parent', id);
 
             // Initiate deletion for each child element
-            // Promise.all allows deleting them in parallel, not sequentially
             await Promise.all(children.map(child => this.deleteNode(child.id)));
         }
 
@@ -116,7 +113,6 @@ class MockBackendService {
         await db.delete(STORE_NAME, id);
     }
 
-    // --- NEW METHOD: RENAME ---
     async renameNode(id: string, newName: string): Promise<FileSystemNode> {
         const db = await this.dbPromise;
 
@@ -150,7 +146,6 @@ class MockBackendService {
         return node;
     }
 
-    // --- NEW METHOD: SEARCH ALL NODES ---
     async searchNodes(query: string): Promise<FileSystemNode[]> {
         const db = await this.dbPromise;
 
