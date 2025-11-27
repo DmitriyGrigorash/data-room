@@ -21,7 +21,7 @@ import { TransitionProps } from '@mui/material/transitions';
 
 import { useFileSystem } from '../../context/FileSystemContext';
 import { FileSystemNode } from '../../services/db';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 import './index.css'
 
@@ -37,6 +37,7 @@ const Transition = React.forwardRef(function Transition(
 
 const FileExplorer = () => {
     const navigate = useNavigate();
+    const { pathname } = useLocation();
     const { state, deleteNode, renameNode } = useFileSystem();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedNode, setSelectedNode] = useState<FileSystemNode | null>(null);
@@ -122,8 +123,8 @@ const FileExplorer = () => {
     return (
         <section className='FileExplorer'>
             <List>
-                {state.items.length === 0 && (
-                    <Typography variant='h5' align="center" color="text.secondary">
+                {(state.items.length === 0 && pathname === "/") && (
+                    <Typography variant='h5' align="center" color="text.secondary" sx={{margin: "20px 0 0"}}>
                         Folder is empty
                     </Typography>
                 )}

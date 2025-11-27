@@ -4,7 +4,6 @@ import { useParams, useLocation } from 'react-router-dom';
 import Box from '@mui/material/Box';
 import { UserButton } from "@clerk/clerk-react";
 import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
 import Stack from '@mui/material/Stack';
 
 // Icons
@@ -65,10 +64,6 @@ export const FileManagerLayout = () => {
                                 <Typography color="text.secondary">
                                     You are now authenticated. This is where your files will live.
                                 </Typography>
-
-                                <Paper sx={{ p: 4, width: '80%', maxWidth: '800px', mt: 4, border: '1px dashed rgba(0,0,0,0.1)', bgcolor: 'transparent' }}>
-                                    <Typography align="center" color="text.secondary">No documents uploaded yet.</Typography>
-                                </Paper>
                             </Stack>
                         )}
 
