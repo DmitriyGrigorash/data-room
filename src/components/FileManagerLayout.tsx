@@ -68,10 +68,10 @@ export const FileManagerLayout = () => {
                         )}
 
                         <FileExplorer />
-                        <ActionBar />
                     </>
                 )}
             </Box>
+            <ActionBar />
         </Box>
     );
 };
