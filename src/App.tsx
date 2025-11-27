@@ -1,5 +1,5 @@
 import { SignedIn, SignedOut } from "@clerk/clerk-react";
-
+import { BrowserRouter } from "react-router-dom";
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 
@@ -8,7 +8,6 @@ import Dashboard from "./pages/Dashboard";
 import LandingPage from "./pages/LandingPage";
 
 import './App.css'
-import { BrowserRouter } from "react-router-dom";
 
 const theme = createTheme({
   palette: {

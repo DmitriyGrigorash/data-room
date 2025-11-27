@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
 import {
     List, ListItem, ListItemText, ListItemIcon,
     ListItemButton,
@@ -10,6 +12,8 @@ import {
     AppBar,
     Toolbar
 } from '@mui/material';
+import { TransitionProps } from '@mui/material/transitions';
+
 import InsertDriveFileIcon from '@mui/icons-material/InsertDriveFile';
 import FolderIcon from '@mui/icons-material/Folder';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
@@ -17,15 +21,14 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import CloseIcon from '@mui/icons-material/Close';
-import { TransitionProps } from '@mui/material/transitions';
 
 import { useFileSystem } from '../../context/FileSystemContext';
 import { FileSystemNode } from '../../services/db';
-import { useLocation, useNavigate } from 'react-router-dom';
+
 
 import './index.css'
 
-// Анимация открытия диалога (слайд снизу вверх)
+// Dialog opening animation (slide from bottom to top)
 const Transition = React.forwardRef(function Transition(
     props: TransitionProps & {
         children: React.ReactElement;
@@ -35,28 +38,32 @@ const Transition = React.forwardRef(function Transition(
     return <Slide direction="up" ref={ref} {...props} />;
 });
 
-const FileExplorer = () => {
+// Define type for props
+interface FileExplorerProps {
+    items: FileSystemNode[];
+}
+
+const FileExplorer = ({ items }: FileExplorerProps) => {
     const navigate = useNavigate();
-    const { pathname } = useLocation();
-    const { state, deleteNode, renameNode } = useFileSystem();
+    const { deleteNode, renameNode } = useFileSystem();
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const [selectedNode, setSelectedNode] = useState<FileSystemNode | null>(null);
     const [isRenameOpen, setRenameOpen] = useState(false);
     const [isDeleteOpen, setDeleteOpen] = useState(false);
     const [newName, setNewName] = useState('');
 
-    // --- Состояние для PDF Превью ---
+    // --- State for PDF Preview ---
     const [previewFile, setPreviewFile] = useState<FileSystemNode | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
-    // --- Эффект для создания/очистки URL ---
     useEffect(() => {
+        // Effect for creating/cleaning up URL
         if (previewFile && previewFile.content) {
-            // Создаем временную ссылку на Blob
+            // Create a temporary URL for the Blob
             const url = URL.createObjectURL(previewFile.content);
             setPreviewUrl(url);
 
-            // Очистка при закрытии (чтобы не забивать память)
+            // Clean up the URL when the component unmounts or previewFile changes to avoid memory leaks
             return () => URL.revokeObjectURL(url);
         } else {
             setPreviewUrl(null);
@@ -94,16 +101,16 @@ const FileExplorer = () => {
         }
     };
 
-    // --- НАВИГАЦИЯ И ОТКРЫТИЕ ФАЙЛОВ ---
+    // --- NAVIGATION AND FILE OPENING ---
     const handleNavigate = (node: FileSystemNode) => {
         if (node.type === 'folder') {
             navigate(`/folder/${node.id}`);
         } else {
-            // Проверяем, является ли файл PDF
+            // Check if the file is a PDF
             if (node.mimeType === 'application/pdf') {
                 setPreviewFile(node);
             } else {
-                // Для остальных файлов пока можно просто предложить скачивание или alert
+                // For other files, currently just offer download or alert
                 alert("Preview is available only for PDF files currently.");
             }
         }
@@ -113,7 +120,7 @@ const FileExplorer = () => {
         setPreviewFile(null);
     };
 
-    // --- Рендер иконки ---
+    // --- Render icon ---
     const getIcon = (node: FileSystemNode) => {
         if (node.type === 'folder') return <FolderIcon color="primary" />;
         if (node.mimeType === 'application/pdf') return <PictureAsPdfIcon color="error" />;
@@ -123,13 +130,7 @@ const FileExplorer = () => {
     return (
         <section className='FileExplorer'>
             <List>
-                {(state.items.length === 0 && pathname === "/") && (
-                    <Typography variant='h5' align="center" color="text.secondary" sx={{margin: "20px 0 0"}}>
-                        Folder is empty
-                    </Typography>
-                )}
-
-                {state.items.map((node) => (
+                {items.map((node) => (
                     <ListItem
                         className='FileExplorer__ListItem'
                         key={node.id}
@@ -197,7 +198,7 @@ const FileExplorer = () => {
                     </Toolbar>
                 </AppBar>
 
-                {/* Iframe отображает PDF нативно силами браузера */}
+                {/* Iframe displays PDF natively using the browser's capabilities */}
                 {previewUrl && (
                     <iframe
                         src={previewUrl}
@@ -228,7 +229,6 @@ const FileExplorer = () => {
                 </DialogActions>
             </Dialog>
 
-            {/* --- НОВЫЙ Диалог Удаления --- */}
             <Dialog
                 open={isDeleteOpen}
                 onClose={() => setDeleteOpen(false)}

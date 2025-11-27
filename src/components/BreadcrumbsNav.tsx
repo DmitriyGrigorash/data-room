@@ -1,6 +1,7 @@
 import { Link as RouterLink } from 'react-router-dom';
 import { Breadcrumbs, Link, Typography, Box } from '@mui/material';
-import HomeIcon from '@mui/icons-material/Home'; // Убедись, что иконка импортирована
+import HomeIcon from '@mui/icons-material/Home';
+
 import { useFileSystem } from '../context/FileSystemContext';
 
 const BreadcrumbsNav = () => {
@@ -11,19 +12,16 @@ const BreadcrumbsNav = () => {
             margin: "20px 0 0"
         }}>
             <Breadcrumbs aria-label="breadcrumb">
-                {/* 1. КНОПКА HOME */}
                 {state.currentFolderId === null ? (
-                    // Если мы в корне — просто текст (неактивный)
-                    <Typography 
-                        sx={{ display: 'flex', alignItems: 'center' }} 
+                    <Typography
+                        sx={{ display: 'flex', alignItems: 'center' }}
                         color="text.primary"
                         fontWeight="500"
                     >
-                        <HomeIcon sx={{ mr: 1 }} fontSize="medium"/>
+                        <HomeIcon sx={{ mr: 1 }} fontSize="medium" />
                         Home
                     </Typography>
                 ) : (
-                    // Если мы в глубине — ссылка
                     <Link
                         component={RouterLink}
                         underline="hover"
@@ -36,18 +34,16 @@ const BreadcrumbsNav = () => {
                     </Link>
                 )}
 
-                {/* 2. ОСТАЛЬНОЙ ПУТЬ */}
+                {/* DYNAMIC PATH SEGMENTS */}
                 {state.breadcrumbs.map((node, index) => {
-                    // Проверяем, последний ли это элемент
+                    // Check if the current node in the loop is the last one in the breadcrumb trail.
                     const isLast = index === state.breadcrumbs.length - 1 && node.id === state.currentFolderId;
 
                     return isLast ? (
-                        // ТЕКУЩАЯ ПАПКА -> Неактивный текст (Typography)
                         <Typography key={node.id} color="text.primary" fontWeight="500">
                             {node.name}
                         </Typography>
                     ) : (
-                        // РОДИТЕЛЬСКАЯ ПАПКА -> Активная ссылка (Link)
                         <Link
                             key={node.id}
                             component={RouterLink}

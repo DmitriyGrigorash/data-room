@@ -1,9 +1,12 @@
 import React, { useRef } from 'react';
-import { useFileSystem } from '../../context/FileSystemContext';
+
 import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder';
-import Stack from '@mui/material/Stack';
+
+import { useFileSystem } from '../../context/FileSystemContext';
 
 import "./index.css"
 
@@ -13,10 +16,10 @@ const ActionBar = () => {
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files) {
-            // Преобразуем FileList в массив и запускаем загрузку параллельно
+            // Convert FileList to an array and start uploading in parallel
             Array.from(e.target.files).forEach(file => uploadFile(file));
         }
-        // Сбрасываем input, чтобы можно было загрузить тот же файл повторно
+        // Reset the input so the same file can be uploaded again
         if (fileInputRef.current) fileInputRef.current.value = '';
     };
 
@@ -46,14 +49,12 @@ const ActionBar = () => {
     );
 };
 
-// Встраивается в Toolbar
 export const CreateFolderButton = () => {
     const { createFolder } = useFileSystem();
 
     const handleClick = () => {
         const name = prompt("Enter folder name:");
         if (name && name.trim()) {
-            // Здесь можно добавить валидацию на спецсимволы
             createFolder(name.trim());
         }
     };
